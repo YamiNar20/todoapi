@@ -1,0 +1,57 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 60
+      arrivalRate: 20
+scenarios:
+-name: "Get all todo items"
+  - flow:
+     
+        get:
+          url: "/todos"
+          capture:
+        
+
+          json: "$.[]"
+          log:  "Response: {{ JSON.stringify($response) }}" 
+          
+            - name: "Create a new todo item"
+    flow:
+      - post:
+          url: "/todos"
+          json:
+            title: "New Todo"
+            description: "This is a new todo item for Makeup"
+          capture:
+            - json: "$.title"  # Capture the title of the created todo item
+            - json: "$.description"  # Capture the description of the created todo item
+      - log: "Response: {{ JSON.stringify($response) }}"  # Log the response
+       - name: "Get a specific todo item"
+    flow:
+      - get:
+          url: "/todos/{{ $randomElement($.capture[0]) }}"  # Use a randomly captured todo item ID
+      - log: "Response: {{ JSON.stringify($response) }}"  # Log the response
+
+  - name: "Update a specific todo item"
+    flow:
+      - get:
+          url: "/todos"
+          capture:
+            - json: "$.[]._id"  # Capture IDs of all todo items
+      - put:
+          url: "/todos/{{ $randomElement($.capture[0]) }}"  # Use a randomly captured todo item ID
+          json:
+            title: "Updated Todo"
+            description: "This is an updated todo item"
+            completed: true
+      - log: "Response: {{ JSON.stringify($response) }}"  # Log the response
+
+  - name: "Delete a specific todo item"
+    flow:
+      - get:
+          url: "/todos"
+          capture:
+            - json: "$.[]._id"  # Capture IDs of all todo items
+      - delete:
+          url: "/todos/{{ $randomElement($.capture[0]) }}"  # Use a randomly captured todo item ID
+      - log: "Response: {{ JSON.stringify($response) }}"  # Log the response
